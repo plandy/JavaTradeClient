@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<?import javafx.scene.chart.LineChart?>
+<?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.NumberAxis?>
+<GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="plandy.javatradeclient.controller.MainWindowController">
+<columnConstraints>
+    <ColumnConstraints />
+</columnConstraints>
+<rowConstraints>
+    <RowConstraints />
+</rowConstraints>
+<children>
+    <LineChart GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+        <xAxis>
+            <CategoryAxis side="BOTTOM" />
+        </xAxis>
+        <yAxis>
+            <NumberAxis side="LEFT" />
+        </yAxis>
+    </LineChart>
+</children>
+</GridPane>
