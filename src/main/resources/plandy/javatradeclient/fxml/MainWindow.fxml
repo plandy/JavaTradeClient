@@ -1,23 +1,23 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
-<?import java.util.*?>
-<?import javafx.scene.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
-<?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.CategoryAxis?>
+<?import javafx.scene.chart.LineChart?>
 <?import javafx.scene.chart.NumberAxis?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+
 <GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="plandy.javatradeclient.controller.MainWindowController">
 <columnConstraints>
     <ColumnConstraints />
+      <ColumnConstraints />
 </columnConstraints>
 <rowConstraints>
     <RowConstraints />
 </rowConstraints>
 <children>
-    <LineChart GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
+    <LineChart id="priceChart" fx:id="priceChart" prefHeight="400.0" prefWidth="479.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
         <xAxis>
             <CategoryAxis side="BOTTOM" />
         </xAxis>
@@ -25,5 +25,6 @@
             <NumberAxis side="LEFT" />
         </yAxis>
     </LineChart>
+      <ListView id="tickerListview" fx:id="tickerListview" prefHeight="200.0" prefWidth="200.0" />
 </children>
 </GridPane>
