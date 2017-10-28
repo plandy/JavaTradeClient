@@ -9,13 +9,15 @@ import javafx.scene.chart.LineChart;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.cell.TextFieldListCell;
-import plandy.javatradeclient.DataRequest;
-import plandy.javatradeclient.MarketDataService;
-import plandy.javatradeclient.RequestType;
-import plandy.javatradeclient.Ticker;
+import org.zeromq.ZMsg;
+import plandy.javatradeclient.*;
 
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.StringReader;
 import java.net.URL;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
 
@@ -38,7 +40,7 @@ public class MainWindowController implements Initializable{
         MarketDataService dataService = new MarketDataService();
         dataService.start();
         //dataService.requestData( new DataRequestTickers( RequestType.LIST_TICKERS, this ) );
-        dataService.requestData( new DataRequestTickers( RequestType.DATA_CHART, this ) );
+        dataService.requestData( new ListTickersDataRequest(), new ListTickersResultCallback(this) );
 
         //tickerListview.getItems().addAll( listTickers );
         tickerListview.setCellFactory( listcell -> new ListCell<Ticker>() {
@@ -93,6 +95,127 @@ public class MainWindowController implements Initializable{
             return listTickers;
         }
 
+    }
+
+    private static class ListTickersResultCallback implements IResultCallback {
+
+        private final MainWindowController controller;
+
+        public ListTickersResultCallback( MainWindowController p_controller ) {
+            controller = p_controller;
+        }
+
+        @Override
+        public void executeCallback( String p_listTickers ) {
+
+            ObservableList<Ticker> priceHistory = FXCollections.observableArrayList();
+
+            StringReader stringReader = new StringReader(p_listTickers);
+            BufferedReader buff = new BufferedReader( stringReader );
+            String line;
+
+            try {
+                line = buff.readLine();
+
+                String[] columnPositions = line.split(",");
+
+                int tickerIndex = -1;
+                int fullnameIndex = -1;
+
+                for ( int i = 0; i < columnPositions.length; i++ ) {
+                    switch( columnPositions[i] ) {
+                        case "ticker": tickerIndex = i;
+                        case "fullname": fullnameIndex = i;
+                    }
+
+                }
+
+                while ( (line = buff.readLine()) != null ) {
+                    System.out.println(line);
+
+                    String[] values = line.split(",");
+
+                    Ticker dataObject = new Ticker( values[tickerIndex], values[fullnameIndex] );
+
+                    priceHistory.add( dataObject );
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            Platform.runLater( () -> {
+                controller.populateListTickers( priceHistory );
+            });
+        }
+    }
+
+    private static class PriceHistoryResultCallback implements IResultCallback {
+
+       private final MainWindowController controller;
+
+        public PriceHistoryResultCallback( MainWindowController p_controller ) {
+            controller = p_controller;
+        }
+
+        @Override
+        public void executeCallback( String p_priceHistory ) {
+
+            List< HashMap<String, Object>> l_priceHistory = new ArrayList<HashMap<String, Object>>();
+
+            StringReader stringReader = new StringReader(p_priceHistory);
+            BufferedReader l_buff = new BufferedReader( stringReader );
+            String line;
+
+            try {
+                line = l_buff.readLine();
+
+                String[] columnPositions = line.split(",");
+
+                int dateIndex = -1;
+                int openIndex = -1;
+                int highIndex = -1;
+                int lowIndex = -1;
+                int closeIndex = -1;
+                int volumeIndex = -1;
+
+                for ( int i = 0; i < columnPositions.length; i++ ) {
+                    switch( columnPositions[i] ) {
+                        case "date": dateIndex = i;
+                        case "open": openIndex = i;
+                        case "high": highIndex = i;
+                        case "low": lowIndex = i;
+                        case "close": closeIndex = i;
+                        case "volume": volumeIndex = i;
+                    }
+
+                }
+
+                while ( (line = l_buff.readLine()) != null ) {
+                    System.out.println(line);
+
+                    String[] values = line.split(",");
+
+                    HashMap<String, Object> dataObject = new HashMap<String, Object>();
+
+                    dataObject.put( "date", values[dateIndex] );
+                    dataObject.put( "open", new Double(values[openIndex]) );
+                    dataObject.put( "high", new Double(values[highIndex]) );
+                    dataObject.put( "low", new Double(values[lowIndex]) );
+                    dataObject.put( "close", new Double(values[closeIndex]) );
+                    dataObject.put( "volume", Integer.parseInt(values[volumeIndex]) );
+
+                    l_priceHistory.add( dataObject );
+
+                }
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            //Platform.runLater( () -> {
+                //controller.populateListTickers( p_dataResult.getListTickers() );
+            //});
+        }
     }
 
 }

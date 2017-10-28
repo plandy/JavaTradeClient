@@ -3,7 +3,11 @@ package plandy.javatradeclient;
 
 public enum RequestType {
 
+    IDENTIFY,
+    IDENTIFY_RESULT,
     LIST_TICKERS,
-    DATA_CHART;
+    LIST_TICKERS_RESULT,
+    PRICE_HISTORY,
+    PRICE_HISTORY_RESULT;
 
 }

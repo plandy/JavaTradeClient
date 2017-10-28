@@ -1,9 +1,9 @@
 package plandy.javatradeclient;
 
-public interface IDataRequest<T> {
+import org.zeromq.ZMsg;
 
+public interface IDataRequest {
 
-
-    boolean executeCallback();
+    ZMsg toMsg();
 
 }
