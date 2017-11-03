@@ -1,52 +1,48 @@
 package plandy.javatradeclient.controller;
 
 import javafx.application.Platform;
+import javafx.beans.value.ChangeListener;
+import javafx.beans.value.ObservableValue;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import javafx.fxml.FXML;
 import javafx.fxml.Initializable;
 import javafx.scene.chart.LineChart;
+import javafx.scene.chart.XYChart;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
-import javafx.scene.control.cell.TextFieldListCell;
-import org.zeromq.ZMsg;
 import plandy.javatradeclient.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.StringReader;
 import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ResourceBundle;
+import java.time.Instant;
+import java.util.*;
 
 public class MainWindowController implements Initializable{
 
+    private MarketDataService marketDataService;
+
     @FXML
-    private ListView<Ticker> tickerListview;
+    private ListView<Stock> tickerListview;
 
     @FXML
     private LineChart priceChart;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
-        //ObservableList<Ticker> listTickers = FXCollections.observableArrayList();
-        //listTickers.add( new Ticker("AAPL", "Apple Inc.") );
-        //listTickers.add( new Ticker("MSFT", "Microsoft Corporation") );
 
-        DataRequestTickers listTickersDataRequest = new DataRequestTickers( RequestType.LIST_TICKERS, this ) ;
+        marketDataService = new MarketDataService();
+        marketDataService.start();
 
-        MarketDataService dataService = new MarketDataService();
-        dataService.start();
-        //dataService.requestData( new DataRequestTickers( RequestType.LIST_TICKERS, this ) );
-        dataService.requestData( new ListTickersDataRequest(), new ListTickersResultCallback(this) );
+        //dataService.requestData( new PriceHistoryDataRequest("aaaa"), new PriceHistoryResultCallback(this) );
+        marketDataService.requestData( new ListTickersDataRequest(), new ListTickersResultCallback(this) );
 
-        //tickerListview.getItems().addAll( listTickers );
-        tickerListview.setCellFactory( listcell -> new ListCell<Ticker>() {
+        tickerListview.setCellFactory( listcell -> new ListCell<Stock>() {
 
             @Override
-            protected void updateItem( Ticker p_item, boolean p_isEmpty ) {
+            protected void updateItem(Stock p_item, boolean p_isEmpty ) {
 
                 super.updateItem( p_item, p_isEmpty );
 
@@ -57,44 +53,30 @@ public class MainWindowController implements Initializable{
                 }
             }
         }  );
+        tickerListview.getSelectionModel().selectedItemProperty().addListener( new StockSelectionListener() );
     }
 
-    public void populateListTickers( ObservableList<Ticker> p_istTickers ) {
-        tickerListview.getItems().addAll( p_istTickers );
-    }
-
-    public class DataRequestTickers {
-        private final RequestType requestType;
-        private final MainWindowController controller;
-
-        public DataRequestTickers( RequestType p_requestType, MainWindowController p_controller ) {
-            requestType = p_requestType;
-            controller = p_controller;
-        }
-
-        public String getRequestType() {
-            return requestType.name();
-        }
-
-        public void executeCallback( DataResultTickers p_dataResult ) {
-            Platform.runLater( () -> {
-                controller.populateListTickers( p_dataResult.getListTickers() );
-            });
+    private class StockSelectionListener implements ChangeListener<Stock> {
+        @Override
+        public void changed(ObservableValue<? extends Stock> observable, Stock oldValue, Stock newValue) {
+            if ( newValue != null ) {
+                selectStock( newValue.getTicker() );
+            }
         }
     }
 
-    public class DataResultTickers {
+    private void selectStock( String p_ticker ) {
+        PriceHistoryDataRequest priceHistoryDataRequest = new PriceHistoryDataRequest( p_ticker );
+        marketDataService.requestData( priceHistoryDataRequest, new PriceHistoryResultCallback(this) );
+    }
 
-        private ObservableList<Ticker> listTickers;
+    public void populateListTickers( ObservableList<Stock> p_istStocks) {
+        tickerListview.getItems().addAll(p_istStocks);
+    }
 
-        public DataResultTickers(  ) {
-
-        }
-
-        public ObservableList<Ticker> getListTickers() {
-            return listTickers;
-        }
-
+    public void populatePriceHistoryChart( XYChart.Series<String, Number> p_priceSeries ) {
+        priceChart.getData().clear();
+        priceChart.getData().add(p_priceSeries);
     }
 
     private static class ListTickersResultCallback implements IResultCallback {
@@ -106,11 +88,11 @@ public class MainWindowController implements Initializable{
         }
 
         @Override
-        public void executeCallback( String p_listTickers ) {
+        public void executeCallback( String p_listStocks ) {
 
-            ObservableList<Ticker> priceHistory = FXCollections.observableArrayList();
+            ObservableList<Stock> priceHistory = FXCollections.observableArrayList();
 
-            StringReader stringReader = new StringReader(p_listTickers);
+            StringReader stringReader = new StringReader(p_listStocks);
             BufferedReader buff = new BufferedReader( stringReader );
             String line;
 
@@ -135,7 +117,7 @@ public class MainWindowController implements Initializable{
 
                     String[] values = line.split(",");
 
-                    Ticker dataObject = new Ticker( values[tickerIndex], values[fullnameIndex] );
+                    Stock dataObject = new Stock( values[tickerIndex], values[fullnameIndex] );
 
                     priceHistory.add( dataObject );
 
@@ -161,6 +143,8 @@ public class MainWindowController implements Initializable{
         @Override
         public void executeCallback( String p_priceHistory ) {
 
+            XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
+
             List< HashMap<String, Object>> l_priceHistory = new ArrayList<HashMap<String, Object>>();
 
             StringReader stringReader = new StringReader(p_priceHistory);
@@ -181,7 +165,7 @@ public class MainWindowController implements Initializable{
 
                 for ( int i = 0; i < columnPositions.length; i++ ) {
                     switch( columnPositions[i] ) {
-                        case "date": dateIndex = i;
+                        case "nulltimestamp": dateIndex = i;
                         case "open": openIndex = i;
                         case "high": highIndex = i;
                         case "low": lowIndex = i;
@@ -190,6 +174,7 @@ public class MainWindowController implements Initializable{
                     }
 
                 }
+                Instant startInstant = Calendar.getInstance().toInstant();
 
                 while ( (line = l_buff.readLine()) != null ) {
                     System.out.println(line);
@@ -198,7 +183,7 @@ public class MainWindowController implements Initializable{
 
                     HashMap<String, Object> dataObject = new HashMap<String, Object>();
 
-                    dataObject.put( "date", values[dateIndex] );
+                    dataObject.put( "nulltimestamp", values[dateIndex] );
                     dataObject.put( "open", new Double(values[openIndex]) );
                     dataObject.put( "high", new Double(values[highIndex]) );
                     dataObject.put( "low", new Double(values[lowIndex]) );
@@ -207,15 +192,26 @@ public class MainWindowController implements Initializable{
 
                     l_priceHistory.add( dataObject );
 
+                    XYChart.Data<String, Number> priceData = new XYChart.Data<String, Number>( values[dateIndex], new Double(values[closeIndex]) );
+                    priceSeries.getData().add(0, priceData );
+
                 }
+                System.out.println( "Starting parse: " + startInstant.toString() );
+                System.out.println( "Finish parse: " + Calendar.getInstance().toInstant().toString() );
             } catch (IOException e) {
                 e.printStackTrace();
             }
 
-            //Platform.runLater( () -> {
-                //controller.populateListTickers( p_dataResult.getListTickers() );
-            //});
+
+            Platform.runLater( () -> {
+                controller.populatePriceHistoryChart( priceSeries );
+            });
         }
     }
+
+//    public void injectMarketDataService( MarketDataService p_marketDataService ) {
+//        marketDataService = p_marketDataService;
+//        marketDataService.requestData( new ListTickersDataRequest(), new ListTickersResultCallback(this) );
+//    }
 
 }

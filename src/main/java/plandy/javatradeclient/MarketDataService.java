@@ -6,7 +6,6 @@ import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
 import org.zeromq.ZMQ.PollItem;
 import org.zeromq.ZMQ.Poller;
-import zmq.Msg;
 
 import java.util.Calendar;
 import java.util.UUID;
@@ -37,9 +36,6 @@ public class MarketDataService extends Thread {
 
         this.zContext =  new ZContext();
         this.zClientSocket = zContext.createSocket( ZMQ.DEALER );
-        //UUID uuid = UUID.randomUUID();
-       // String identity = uuid.toString();
-        //zClientSocket.setIdentity( identity.getBytes() );
         this.zClientSocket.connect( "tcp://localhost:5057" );
 
         items = new PollItem[] {
@@ -57,10 +53,8 @@ public class MarketDataService extends Thread {
         isRunning = true;
 
         while( isRunning ) {
-            //System.out.println( "loop data service" + Calendar.getInstance().toInstant().toString() );
             while( outBuffer.peek() != null ) {
                 ZMsg outMessage = outBuffer.poll();
-                Msg msg = new Msg();
                 System.out.println(outMessage + Calendar.getInstance().toInstant().toString());
                 outMessage.send( zClientSocket );
             }
