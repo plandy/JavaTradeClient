@@ -15,8 +15,8 @@ public class PriceHistoryDataRequest extends AbstractDataRequest{
     @Override
     public ZMsg toMsg() {
         ZMsg zMsg = new ZMsg();
-        zMsg.add( new ZFrame(super.requestType.name()) );
-        zMsg.add( new ZFrame(ticker) );
+        zMsg.add( new ZFrame(super.requestType.name() + ";" + ticker) );
+        //zMsg.add( new ZFrame(ticker) );
 
         return zMsg;
     }
