@@ -4,7 +4,6 @@ import org.zeromq.ZContext;
 import org.zeromq.ZFrame;
 import org.zeromq.ZMQ;
 import org.zeromq.ZMsg;
-import org.zeromq.ZMQ.PollItem;
 import org.zeromq.ZMQ.Poller;
 
 import java.util.Calendar;
@@ -20,10 +19,7 @@ public class MarketDataService extends Thread {
 
     private final ZContext zContext;
     private final ZMQ.Socket zClientSocket;
-
     private final ZMQ.Poller zPoller;
-
-    private final PollItem[] items;
 
     private final ConcurrentMap<String, IResultCallback> replyCallbackMap = new ConcurrentHashMap<>();
 
@@ -37,10 +33,6 @@ public class MarketDataService extends Thread {
         this.zContext =  new ZContext();
         this.zClientSocket = zContext.createSocket( ZMQ.DEALER );
         this.zClientSocket.connect( "tcp://localhost:5057" );
-
-        items = new PollItem[] {
-                new PollItem(zClientSocket, Poller.POLLIN)
-        };
 
         zPoller = zContext.createPoller(1);
         zPoller.register( zClientSocket, Poller.POLLIN );

@@ -54,6 +54,8 @@ public class MainWindowController implements Initializable{
             }
         }  );
         tickerListview.getSelectionModel().selectedItemProperty().addListener( new StockSelectionListener() );
+
+        priceChart.setCreateSymbols( false );
     }
 
     private class StockSelectionListener implements ChangeListener<Stock> {
@@ -145,14 +147,14 @@ public class MainWindowController implements Initializable{
 
             XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
 
-            List< HashMap<String, Object>> l_priceHistory = new ArrayList<HashMap<String, Object>>();
+            List< HashMap<String, Object>> priceHistory = new ArrayList<HashMap<String, Object>>();
 
             StringReader stringReader = new StringReader(p_priceHistory);
-            BufferedReader l_buff = new BufferedReader( stringReader );
+            BufferedReader buff = new BufferedReader( stringReader );
             String line;
 
             try {
-                line = l_buff.readLine();
+                line = buff.readLine();
 
                 String[] columnPositions = line.split(",");
 
@@ -165,7 +167,7 @@ public class MainWindowController implements Initializable{
 
                 for ( int i = 0; i < columnPositions.length; i++ ) {
                     switch( columnPositions[i] ) {
-                        case "nulltimestamp": dateIndex = i;
+                        case "timestamp": dateIndex = i;
                         case "open": openIndex = i;
                         case "high": highIndex = i;
                         case "low": lowIndex = i;
@@ -176,21 +178,21 @@ public class MainWindowController implements Initializable{
                 }
                 Instant startInstant = Calendar.getInstance().toInstant();
 
-                while ( (line = l_buff.readLine()) != null ) {
+                while ( (line = buff.readLine()) != null ) {
                     System.out.println(line);
 
                     String[] values = line.split(",");
 
                     HashMap<String, Object> dataObject = new HashMap<String, Object>();
 
-                    dataObject.put( "nulltimestamp", values[dateIndex] );
+                    dataObject.put( "timestamp", values[dateIndex] );
                     dataObject.put( "open", new Double(values[openIndex]) );
                     dataObject.put( "high", new Double(values[highIndex]) );
                     dataObject.put( "low", new Double(values[lowIndex]) );
                     dataObject.put( "close", new Double(values[closeIndex]) );
                     dataObject.put( "volume", Integer.parseInt(values[volumeIndex]) );
 
-                    l_priceHistory.add( dataObject );
+                    priceHistory.add( dataObject );
 
                     XYChart.Data<String, Number> priceData = new XYChart.Data<String, Number>( values[dateIndex], new Double(values[closeIndex]) );
                     priceSeries.getData().add(0, priceData );
@@ -199,7 +201,7 @@ public class MainWindowController implements Initializable{
                 System.out.println( "Starting parse: " + startInstant.toString() );
                 System.out.println( "Finish parse: " + Calendar.getInstance().toInstant().toString() );
             } catch (IOException e) {
-                e.printStackTrace();
+                throw new RuntimeException( e );
             }
 
 
