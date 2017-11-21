@@ -190,7 +190,7 @@ public class MainWindowController implements Initializable{
                     dataObject.put( "high", new Double(values[highIndex]) );
                     dataObject.put( "low", new Double(values[lowIndex]) );
                     dataObject.put( "close", new Double(values[closeIndex]) );
-                    dataObject.put( "volume", Integer.parseInt(values[volumeIndex]) );
+                    dataObject.put( "volume", Long.parseLong(values[volumeIndex]) );
 
                     priceHistory.add( dataObject );
 
