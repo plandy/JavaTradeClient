@@ -28,7 +28,7 @@ public class MainWindowController implements Initializable{
     private ListView<Stock> tickerListview;
 
     @FXML
-    private LineChart priceChart;
+    private PriceChart priceChart;
 
     @Override
     public void initialize(URL location, ResourceBundle resources) {
@@ -54,8 +54,6 @@ public class MainWindowController implements Initializable{
             }
         }  );
         tickerListview.getSelectionModel().selectedItemProperty().addListener( new StockSelectionListener() );
-
-        priceChart.setCreateSymbols( false );
     }
 
     private class StockSelectionListener implements ChangeListener<Stock> {
@@ -76,9 +74,9 @@ public class MainWindowController implements Initializable{
         tickerListview.getItems().addAll(p_istStocks);
     }
 
-    public void populatePriceHistoryChart( XYChart.Series<String, Number> p_priceSeries ) {
+    public void populatePriceHistoryChart( XYChart.Series<Date, Number> p_priceSeries ) {
         priceChart.getData().clear();
-        priceChart.getData().add(p_priceSeries);
+        priceChart.getData().add( p_priceSeries );
     }
 
     private static class ListTickersResultCallback implements IResultCallback {
@@ -145,7 +143,7 @@ public class MainWindowController implements Initializable{
         @Override
         public void executeCallback( String p_priceHistory ) {
 
-            XYChart.Series<String, Number> priceSeries = new XYChart.Series<>();
+            XYChart.Series<Date, Number> priceSeries = new XYChart.Series<>();
 
             List< HashMap<String, Object>> priceHistory = new ArrayList<HashMap<String, Object>>();
 
@@ -194,7 +192,7 @@ public class MainWindowController implements Initializable{
 
                     priceHistory.add( dataObject );
 
-                    XYChart.Data<String, Number> priceData = new XYChart.Data<String, Number>( values[dateIndex], new Double(values[closeIndex]) );
+                    XYChart.Data<Date, Number> priceData = new XYChart.Data<Date, Number>( DateUtility.parseStringToDate(values[dateIndex]), new Double(values[closeIndex]) );
                     priceSeries.getData().add(0, priceData );
 
                 }

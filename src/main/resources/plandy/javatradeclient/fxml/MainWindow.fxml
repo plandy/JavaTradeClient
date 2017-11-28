@@ -8,6 +8,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
+<?import plandy.javatradeclient.PriceChart?>
 <GridPane alignment="center" hgap="10" vgap="10" xmlns="http://javafx.com/javafx/8.0.112" xmlns:fx="http://javafx.com/fxml/1" fx:controller="plandy.javatradeclient.controller.MainWindowController">
 <columnConstraints>
     <ColumnConstraints />
@@ -17,14 +18,7 @@
     <RowConstraints />
 </rowConstraints>
 <children>
-    <LineChart id="priceChart" fx:id="priceChart" prefHeight="400.0" prefWidth="479.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS">
-        <xAxis>
-            <CategoryAxis side="BOTTOM" />
-        </xAxis>
-        <yAxis>
-            <NumberAxis side="LEFT" />
-        </yAxis>
-    </LineChart>
-      <ListView id="tickerListview" fx:id="tickerListview" prefHeight="200.0" prefWidth="200.0" />
+    <PriceChart id="priceChart" fx:id="priceChart" prefHeight="400.0" prefWidth="479.0" GridPane.columnIndex="1" GridPane.hgrow="ALWAYS" GridPane.vgrow="ALWAYS"/>
+    <ListView id="tickerListview" fx:id="tickerListview" prefHeight="200.0" prefWidth="200.0" />
 </children>
 </GridPane>
